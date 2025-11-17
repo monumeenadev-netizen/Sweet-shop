@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String
+  role         String @default("user") // "user" or "admin"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchaseLogs PurchaseLog[]
+
+  @@map("users")
+}
+
+model Sweet {
+  id           String @id @default(uuid())
+  name         String @unique
+  category     String
+  price        Float
+  quantity     Int @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchaseLogs PurchaseLog[]
+
+  @@map("sweets")
+}
+
+model PurchaseLog {
+  id        String @id @default(uuid())
+  sweetId   String
+  userId    String?
+  quantity  Int
+  type      String // "purchase" or "restock"
+  timestamp DateTime @default(now())
+
+  sweet     Sweet @relation(fields: [sweetId], references: [id], onDelete: Cascade)
+  user      User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_logs")
+}
